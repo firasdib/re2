@@ -1,4 +1,5 @@
 #include <emscripten/bind.h>
+#include <emscripten/val.h>
 #include "re2/re2.h"
 
 using std::vector;
@@ -7,31 +8,53 @@ using re2::StringPiece;
 
 using namespace emscripten;
 
-std::vector<int> RE2_Match(std::string regex, std::string text, int startpos, int endpos, int captureGroupCount) {
+class RegexMatch {
+	public:
+    int start;
+    int end;
+		int getStart() { return start; };
+		int getEnd() { return end; };
+};
+
+std::vector<RegexMatch> RE2_Match(std::string regex, std::string text, int startpos, int endpos, int captureGroupCount) {
+  const char* match_text = text.c_str();
+
   RE2 re(regex);
 
   std::vector<StringPiece> groups(captureGroupCount + 1);
-  std::vector<int> result(captureGroupCount + 1);
+  std::vector<RegexMatch> result(captureGroupCount + 1);
 
-  bool didMatch = re.Match(text, startpos, endpos, RE2::UNANCHORED, &groups[0], groups.size());
+  bool didMatch = re.Match(match_text, startpos, endpos, RE2::UNANCHORED, &groups[0], groups.size());
 
   if (didMatch) {
     for (size_t i = 0, n = groups.size(); i < n; ++i) {
       const StringPiece& item = groups[i];
-      result[i] = item.size();
+
+      int match_start = item.begin() - match_text;
+      int match_end = match_start + item.size();
+
+      RegexMatch rm;
+      rm.start = match_start;
+      rm.end = match_end;
+
+      result[i] = rm;
     }
 
     return result;
   } else {
-    return vector<int>();
+    return vector<RegexMatch>();
   }
 }
 
 EMSCRIPTEN_BINDINGS(my_module) {
-  register_vector<int>("VectorInt");
+  register_vector<RegexMatch>("VectorRegexMatch");
 
   // this may or may not work, let's try directly binding the static funcs
   function("RE2_Match", &RE2_Match);
+
+  class_<RegexMatch>("RegexMatch")
+  	.function("getStart", &RegexMatch::getStart)
+  	.function("getEnd", &RegexMatch::getEnd);
 }
 
 // utilities

@@ -9,11 +9,11 @@ using re2::StringPiece;
 using namespace emscripten;
 
 class RegexMatch {
-	public:
+  public:
     int start;
     int end;
-		int getStart() { return start; };
-		int getEnd() { return end; };
+    int getStart() { return start; };
+    int getEnd() { return end; };
 };
 
 std::vector<RegexMatch> RE2_Match(std::string regex, std::string text, int startpos, int endpos, int captureGroupCount) {
@@ -53,48 +53,48 @@ EMSCRIPTEN_BINDINGS(my_module) {
   function("RE2_Match", &RE2_Match);
 
   class_<RegexMatch>("RegexMatch")
-  	.function("getStart", &RegexMatch::getStart)
-  	.function("getEnd", &RegexMatch::getEnd);
+    .function("getStart", &RegexMatch::getStart)
+    .function("getEnd", &RegexMatch::getEnd);
 }
 
 // utilities
 
 inline size_t getUtf8Length(const uint16_t* from, const uint16_t* to) {
-	size_t n = 0;
-	while (from != to) {
-		uint16_t ch = *from++;
-		if (ch <= 0x7F) ++n;
-		else if (ch <= 0x7FF) n += 2;
-		else if (0xD800 <= ch && ch <= 0xDFFF) n += 4;
-		else if (ch < 0xFFFF) n += 3;
-		else n += 4;
-	}
-	return n;
+  size_t n = 0;
+  while (from != to) {
+    uint16_t ch = *from++;
+    if (ch <= 0x7F) ++n;
+    else if (ch <= 0x7FF) n += 2;
+    else if (0xD800 <= ch && ch <= 0xDFFF) n += 4;
+    else if (ch < 0xFFFF) n += 3;
+    else n += 4;
+  }
+  return n;
 }
 
 inline size_t getUtf16Length(const char* from, const char* to) {
-	size_t n = 0;
-	while (from != to) {
-		unsigned ch = *from & 0xFF;
-		if (ch < 0xF0) {
-			if (ch < 0x80) {
-				++from;
-			} else {
-				if (ch < 0xE0) {
-					from += 2;
-				} else {
-					from += 3;
-				}
-			}
-			++n;
-		} else {
-			from += 4;
-			n += 2;
-		}
-	}
-	return n;
+  size_t n = 0;
+  while (from != to) {
+    unsigned ch = *from & 0xFF;
+    if (ch < 0xF0) {
+      if (ch < 0x80) {
+        ++from;
+      } else {
+        if (ch < 0xE0) {
+          from += 2;
+        } else {
+          from += 3;
+        }
+      }
+      ++n;
+    } else {
+      from += 4;
+      n += 2;
+    }
+  }
+  return n;
 }
 
 inline size_t getUtf8CharSize(char ch) {
-	return ((0xE5000000 >> ((ch >> 3) & 0x1E)) & 3) + 1;
+  return ((0xE5000000 >> ((ch >> 3) & 0x1E)) & 3) + 1;
 }

@@ -10,11 +10,20 @@ using namespace emscripten;
 
 class RegexMatch {
   public:
+    RegexMatch ();
+    RegexMatch (int,int);
     int start;
     int end;
     int getStart() { return start; };
     int getEnd() { return end; };
 };
+
+RegexMatch::RegexMatch () {}
+
+RegexMatch::RegexMatch (int a, int b) {
+  start = a;
+  end = b;
+}
 
 std::vector<RegexMatch> RE2_Match(std::string regex, std::string text, int startpos, int endpos, int captureGroupCount) {
   const char* match_text = text.c_str();
@@ -24,18 +33,16 @@ std::vector<RegexMatch> RE2_Match(std::string regex, std::string text, int start
   std::vector<StringPiece> groups(captureGroupCount + 1);
   std::vector<RegexMatch> result(captureGroupCount + 1);
 
-  bool didMatch = re.Match(match_text, startpos, endpos, RE2::UNANCHORED, &groups[0], groups.size());
+  bool did_match = re.Match(match_text, startpos, endpos, RE2::UNANCHORED, &groups[0], groups.size());
 
-  if (didMatch) {
+  if (did_match) {
     for (size_t i = 0, n = groups.size(); i < n; ++i) {
       const StringPiece& item = groups[i];
 
       int match_start = item.begin() - match_text;
       int match_end = match_start + item.size();
 
-      RegexMatch rm;
-      rm.start = match_start;
-      rm.end = match_end;
+      RegexMatch rm(match_start, match_end);
 
       result[i] = rm;
     }
@@ -53,6 +60,7 @@ EMSCRIPTEN_BINDINGS(my_module) {
   function("RE2_Match", &RE2_Match);
 
   class_<RegexMatch>("RegexMatch")
+    .constructor<int,int>()
     .function("getStart", &RegexMatch::getStart)
     .function("getEnd", &RegexMatch::getEnd);
 }

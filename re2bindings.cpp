@@ -25,8 +25,9 @@ RegexMatch::RegexMatch (int a, int b) {
   end = b;
 }
 
-std::vector<RegexMatch> RE2_Match(std::string regex, std::string text, int startpos, int endpos, int captureGroupCount) {
-  const char* match_text = text.c_str();
+std::vector<RegexMatch> RE2_Match(int regex_pointer, int text_pointer, int startpos, int endpos, int captureGroupCount) {
+  const char* regex = (char*)regex_pointer;
+  const char* match_text = (char*)text_pointer;
 
   RE2 re(regex);
 

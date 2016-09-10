@@ -34,11 +34,13 @@ int RE2_CreateRegex(int regex_pointer) {
   return (int)(new RE2(regex));
 }
 
-std::vector<RegexMatch> RE2_Match(int regex_pointer, int text_pointer, int startpos, int endpos, int captureGroupCount) {
+std::vector<RegexMatch> RE2_Match(int regex_pointer, int text_pointer, int startpos, int endpos) {
   // Debug only!
   // re2::FLAGS_trace_re2 = true;
 
   const char* match_text = (char*)text_pointer;
+
+  int captureGroupCount = ((RE2*)regex_pointer)->NumberOfCapturingGroups();
 
   std::vector<StringPiece> groups(captureGroupCount + 1);
   std::vector<RegexMatch> result(captureGroupCount + 1);
